@@ -15,7 +15,7 @@ from src.common.utils import PROJECT_ROOT, load_envs
 
 load_envs()
 
-WANDB_DIR: Path = PROJECT_ROOT / "wandb"
+WANDB_DIR: Path = PROJECT_ROOT / "DLAI-project"
 WANDB_DIR.mkdir(exist_ok=True, parents=True)
 
 st_run_sel = st.sidebar
@@ -53,11 +53,11 @@ def get_run_dir(entity: str, project: str, run_id: str) -> Path:
     st.sidebar.markdown(body=f"[`Open on WandB`]({run.url})")
 
     timestamp: str = created_at.strftime("%Y%m%d_%H%M%S")
-
+    
     matching_runs: List[Path] = [
         item
         for item in WANDB_DIR.iterdir()
-        if item.is_dir() and item.name.endswith(run_id)
+        if item.is_dir() and item.name.endswith(run_id) and "run" not in item.name
     ]
 
     if len(matching_runs) > 1:
@@ -65,7 +65,7 @@ def get_run_dir(entity: str, project: str, run_id: str) -> Path:
             f"More than one run matching unique id {run_id}! Are you sure about that?"
         )
         st.stop()
-
+        
     if len(matching_runs) == 1:
         return matching_runs[0]
 

@@ -1,0 +1,62 @@
+n_feature: 5
+nhead: 5
+layers: 15
+optim:
+  optimizer:
+    _target_: torch.optim.Adam
+    lr: 0.001
+    betas:
+    - 0.9
+    - 0.999
+    eps: 1.0e-08
+    weight_decay: 0
+  use_lr_scheduler: true
+  lr_scheduler:
+    _target_: torch.optim.lr_scheduler.CosineAnnealingWarmRestarts
+    T_0: 10
+    T_mult: 2
+    eta_min: 0
+    last_epoch: -1
+    verbose: true
+data:
+  datamodule:
+    _target_: src.pl_data.datamodule.MyDataModule
+    datasets:
+      train:
+        _target_: src.pl_data.dataset.MyDataset
+        name: Train
+        path: data/aapl_train.csv
+      val:
+      - _target_: src.pl_data.dataset.MyDataset
+        name: Validate
+        path: data/aapl_val.csv
+      test:
+      - _target_: src.pl_data.dataset.MyDataset
+        name: Test
+        path: data/aapl_test.csv
+    time: 20
+    num_workers:
+      train: 8
+      val: 4
+      test: 4
+    batch_size:
+      train: 32
+      val: 16
+      test: 16
+logging:
+  val_check_interval: 1.0
+  tqdm_progress_bar:
+    refresh_rate: 20
+  wandb:
+    project: DLAI-project
+    entity: Caiserini
+    log_model: true
+    mode: online
+    name: Apple
+    save_dir: /home/kaiser/Projects/DLAI-project/
+  wandb_watch:
+    log: all
+    log_freq: 100
+  lr_monitor:
+    logging_interval: step
+    log_momentum: false

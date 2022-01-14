@@ -12,6 +12,7 @@ from pytorch_lightning.callbacks import (
     EarlyStopping,
     LearningRateMonitor,
     ModelCheckpoint,
+    TQDMProgressBar,
 )
 from pytorch_lightning.loggers import WandbLogger
 
@@ -20,6 +21,14 @@ from src.common.utils import log_hyperparameters, PROJECT_ROOT
 
 def build_callbacks(cfg: DictConfig) -> List[Callback]:
     callbacks: List[Callback] = []
+
+    if "tqdm_progress_bar" in cfg.logging:
+        hydra.utils.log.info(f"Adding callback <TQDMProgressBar>")
+        callbacks.append(
+            TQDMProgressBar(
+                refresh_rate=cfg.logging.tqdm_progress_bar.refresh_rate,
+            )
+        )
 
     if "lr_monitor" in cfg.logging:
         hydra.utils.log.info(f"Adding callback <LearningRateMonitor>")
@@ -49,6 +58,7 @@ def build_callbacks(cfg: DictConfig) -> List[Callback]:
                 mode=cfg.train.monitor_metric_mode,
                 save_top_k=cfg.train.model_checkpoints.save_top_k,
                 verbose=cfg.train.model_checkpoints.verbose,
+                save_last=cfg.train.model_checkpoints.save_last,
             )
         )
 
@@ -129,7 +139,6 @@ def run(cfg: DictConfig) -> None:
         callbacks=callbacks,
         deterministic=cfg.train.deterministic,
         val_check_interval=cfg.logging.val_check_interval,
-        progress_bar_refresh_rate=cfg.logging.progress_bar_refresh_rate,
         **cfg.train.pl_trainer,
     )
     log_hyperparameters(trainer=trainer, model=model, cfg=cfg)
@@ -138,7 +147,7 @@ def run(cfg: DictConfig) -> None:
     trainer.fit(model=model, datamodule=datamodule)
 
     hydra.utils.log.info(f"Starting testing!")
-    trainer.test(datamodule=datamodule)
+    trainer.test(datamodule=datamodule, ckpt_path='best')
 
     # Logger closing to release resources/avoid multi-run conflicts
     if wandb_logger is not None:

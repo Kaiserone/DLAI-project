@@ -1,1 +1,4 @@
 _target_: src.pl_modules.model.MyModel
+n_feature : 5
+nhead : 5
+layers : 15

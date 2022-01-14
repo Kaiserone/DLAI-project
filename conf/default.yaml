@@ -2,9 +2,11 @@
 core:
   version: 0.0.1
   tags:
-    - mytag
+    - apple
+    - no-time
 
 defaults:
+  - _self_
   - data: default
   - hydra: default
   - logging: default

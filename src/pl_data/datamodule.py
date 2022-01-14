@@ -6,7 +6,7 @@ import numpy as np
 import omegaconf
 import pytorch_lightning as pl
 import torch
-from omegaconf import DictConfig
+from omegaconf import DictConfig, ValueNode 
 from torch.utils.data import DataLoader, Dataset
 
 from src.common.utils import PROJECT_ROOT
@@ -36,11 +36,13 @@ class MyDataModule(pl.LightningDataModule):
         datasets: DictConfig,
         num_workers: DictConfig,
         batch_size: DictConfig,
+        time: ValueNode,
     ):
         super().__init__()
         self.datasets = datasets
         self.num_workers = num_workers
         self.batch_size = batch_size
+        self.time = time
 
         self.train_dataset: Optional[Dataset] = None
         self.val_datasets: Optional[Sequence[Dataset]] = None
@@ -52,19 +54,20 @@ class MyDataModule(pl.LightningDataModule):
 
     def setup(self, stage: Optional[str] = None):
         # Here you should instantiate your datasets, you may also split the train into train and validation if needed.
+        print(f"{stage}")
         if stage is None or stage == "fit":
-            self.train_dataset = hydra.utils.instantiate(self.datasets.train)
+            self.train_dataset = hydra.utils.instantiate(self.datasets.train, time = self.time)
             self.val_datasets = [
-                hydra.utils.instantiate(dataset_cfg)
+                hydra.utils.instantiate(dataset_cfg, time = self.time)
                 for dataset_cfg in self.datasets.val
             ]
-
+        
         if stage is None or stage == "test":
             self.test_datasets = [
-                hydra.utils.instantiate(dataset_cfg)
+                hydra.utils.instantiate(dataset_cfg, time = self.time)
                 for dataset_cfg in self.datasets.test
             ]
-
+            
     def train_dataloader(self) -> DataLoader:
         return DataLoader(
             self.train_dataset,
@@ -97,7 +100,7 @@ class MyDataModule(pl.LightningDataModule):
             )
             for dataset in self.test_datasets
         ]
-
+        
     def __repr__(self) -> str:
         return (
             f"{self.__class__.__name__}("
@@ -112,6 +115,9 @@ def main(cfg: omegaconf.DictConfig):
     datamodule: pl.LightningDataModule = hydra.utils.instantiate(
         cfg.data.datamodule, _recursive_=False
     )
+    print(datamodule)
+    datamodule.setup()
+
 
 
 if __name__ == "__main__":

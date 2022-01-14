@@ -21,5 +21,6 @@ early_stopping:
   verbose: False
 
 model_checkpoints:
-  save_top_k: 2
-  verbose: False
+  save_top_k: 4
+  verbose: True
+  save_last: True
