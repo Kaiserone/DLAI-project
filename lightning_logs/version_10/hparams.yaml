@@ -1,6 +1,6 @@
 n_feature: 5
-nhead: 5
-layers: 15
+num_layers: 6
+time_vec: false
 optim:
   optimizer:
     _target_: torch.optim.Adam
@@ -34,7 +34,7 @@ data:
       - _target_: src.pl_data.dataset.MyDataset
         name: Test
         path: data/aapl_test.csv
-    time: 20
+    time: 128
     num_workers:
       train: 8
       val: 4

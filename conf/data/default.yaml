@@ -17,7 +17,7 @@ datamodule:
         name: Test
         path: ${oc.env:YOUR_TEST_DATASET_PATH}
 
-  time: 20
+  time: 128
 
   num_workers:
     train: 8

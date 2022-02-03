@@ -1,4 +1,5 @@
 _target_: src.pl_modules.model.MyModel
 n_feature : 5
-nhead : 5
-layers : 15
+nhead : 7 # if time_vec is true there are two additional features
+layers : 2
+time_vec : True

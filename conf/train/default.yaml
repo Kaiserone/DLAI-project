@@ -13,7 +13,7 @@ pl_trainer:
   num_sanity_val_steps: 2
   gradient_clip_val: 10.0
 
-monitor_metric: 'val_loss'
+monitor_metric: 'train_loss'
 monitor_metric_mode: 'min'
 
 early_stopping:
@@ -21,6 +21,6 @@ early_stopping:
   verbose: False
 
 model_checkpoints:
-  save_top_k: 4
+  save_top_k: 2
   verbose: True
   save_last: True

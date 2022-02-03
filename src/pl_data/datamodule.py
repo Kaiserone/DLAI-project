@@ -7,7 +7,7 @@ import omegaconf
 import pytorch_lightning as pl
 import torch
 from omegaconf import DictConfig, ValueNode 
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, SubsetRandomSampler, random_split, Subset
 
 from src.common.utils import PROJECT_ROOT
 
@@ -45,8 +45,12 @@ class MyDataModule(pl.LightningDataModule):
         self.time = time
 
         self.train_dataset: Optional[Dataset] = None
-        self.val_datasets: Optional[Sequence[Dataset]] = None
+        self.val_datasets : Optional[Sequence[Dataset]] = None
         self.test_datasets: Optional[Sequence[Dataset]] = None
+        #self.train_sampler : Optional[SubsetRandomSampler] = None
+        #self.val_sampler : Optional[SubsetRandomSampler] = None
+        self.train_subset : Optional[Sequence[int]] = None
+        self.val_subset : Optional[Sequence[int]] = None
 
     def prepare_data(self) -> None:
         # download only
@@ -54,13 +58,16 @@ class MyDataModule(pl.LightningDataModule):
 
     def setup(self, stage: Optional[str] = None):
         # Here you should instantiate your datasets, you may also split the train into train and validation if needed.
-        print(f"{stage}")
         if stage is None or stage == "fit":
             self.train_dataset = hydra.utils.instantiate(self.datasets.train, time = self.time)
-            self.val_datasets = [
-                hydra.utils.instantiate(dataset_cfg, time = self.time)
-                for dataset_cfg in self.datasets.val
-            ]
+            train_size = int(0.85 * len(self.train_dataset))
+            self.train_subset, self.val_subset = range(0,train_size), range(train_size,len(self.train_dataset))
+            #self.train_sampler = SubsetRandomSampler(train_subset)
+            #self.val_sampler = SubsetRandomSampler(val_subset)
+            #self.val_datasets = [
+            #    hydra.utils.instantiate(dataset_cfg, time = self.time)
+            #    for dataset_cfg in self.datasets.val
+            #]
         
         if stage is None or stage == "test":
             self.test_datasets = [
@@ -70,24 +77,19 @@ class MyDataModule(pl.LightningDataModule):
             
     def train_dataloader(self) -> DataLoader:
         return DataLoader(
-            self.train_dataset,
-            shuffle=True,
+            Subset(self.train_dataset, self.train_subset),
             batch_size=self.batch_size.train,
             num_workers=self.num_workers.train,
             worker_init_fn=worker_init_fn,
         )
 
     def val_dataloader(self) -> Sequence[DataLoader]:
-        return [
-            DataLoader(
-                dataset,
-                shuffle=False,
-                batch_size=self.batch_size.val,
-                num_workers=self.num_workers.val,
-                worker_init_fn=worker_init_fn,
-            )
-            for dataset in self.val_datasets
-        ]
+        return DataLoader(
+            Subset(self.train_dataset, self.val_subset),
+            batch_size=self.batch_size.val,
+            num_workers=self.num_workers.val,
+            worker_init_fn=worker_init_fn,
+        )
 
     def test_dataloader(self) -> Sequence[DataLoader]:
         return [

@@ -212,3 +212,9 @@ fabric.properties
 
 # Android studio 3.1+ serialized cache file
 .idea/caches/build_file_checksums.ser
+
+# wandb and hydra cache
+wandb/
+.cache/
+DLAI-project/
+lightning_logs/

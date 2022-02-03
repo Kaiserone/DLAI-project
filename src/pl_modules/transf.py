@@ -1,9 +1,7 @@
 import torch
 from torch import nn
-from torch.nn import functional as F
 
-
-class Transf(nn.Module):
+class Transformer(nn.Module):
     def __init__(self, nhead: int, layers: int, time:int, n_feature: int) -> None:
         """
         Simple model that uses convolutions
@@ -19,13 +17,9 @@ class Transf(nn.Module):
             nhead=nhead,
             batch_first=True
         )
-
-        self.transformer = nn.TransformerEncoder(layer, num_layers=layers)
-
-        #self.transformer = nn.ModuleList([nn.TransformerEncoder(layer, num_layers=time) for _ in range(layers)])
-        self.fc1 = nn.Linear(time * n_feature, n_feature)
-        self.fc2 = nn.Linear(n_feature, 1)
-
+        norm = nn.BatchNorm1d(time)
+        self.transformer = nn.TransformerEncoder(layer, num_layers=layers, norm=norm)
+       
     def forward(
         self,
         x: torch.Tensor,
@@ -34,22 +28,4 @@ class Transf(nn.Module):
         :param x: batch of images with size [batch, 1, w, h]
         :returns: predictions with size [batch, output_size]
         """
-        #print(f"{x.shape=}")
-        x = self.transformer(x)
-        #print(f"{x.shape=}")
-        x = F.relu(x)
-        #x = F.max_pool2d(x, kernel_size=2)
-        #print(f"{x.shape=}")
-
-        # Not so easy to keep track of shapes... right?
-        # An useful trick while debugging is to feed the model a fixed sample batch
-        # and print the shape at each step, just to be sure that they match your expectations.
-
-        # print(x.shape)
-
-        x = x.view(x.shape[0], -1)
-        x = self.fc1(x)
-        x = F.relu(x)
-        x = self.fc2(x)
-        #x = F.relu(x)
-        return x
+        return self.transformer(x)

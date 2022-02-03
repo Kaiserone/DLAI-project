@@ -108,7 +108,7 @@ def select_run_path(st_key: str, default_run_path: str):
     return tokens
 
 
-def select_checkpoint(st_key: str = "MyAwesomeModel", default_run_path: str = ""):
+def select_checkpoint(st_key: str = "MyAwesomeModel", default_run_path: str = "caiserini/DLAI-project/"):
     entity, project, run_id = select_run_path(
         st_key=st_key, default_run_path=default_run_path
     )
