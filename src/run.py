@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 from typing import List
 
@@ -15,6 +14,9 @@ from pytorch_lightning.callbacks import (
     TQDMProgressBar,
 )
 from pytorch_lightning.loggers import WandbLogger
+import torch
+import pandas as pd
+import wandb
 
 from src.common.utils import log_hyperparameters, PROJECT_ROOT
 
@@ -148,10 +150,33 @@ def run(cfg: DictConfig) -> None:
 
     hydra.utils.log.info(f"Starting testing!")
     trainer.test(datamodule=datamodule, ckpt_path='best')
+        
 
     # Logger closing to release resources/avoid multi-run conflicts
-    if wandb_logger is not None:
-        wandb_logger.experiment.finish()
+    if "wandb" in cfg.logging:
+        #(#Dataset, #Steps, #Batch)
+        hydra.utils.log.info(f"Wandb Plotting Predictions for: {cfg.data.datamodule.time} days, {cfg.model.layers} layers, {cfg.model._target_} model, {cfg.model.time_vec} time_vec")
+        wandb_logger.experiment.tags += [f"{cfg.data.datamodule.time} days", f"{cfg.model.layers} layers", f"{cfg.model._target_} model", f"{cfg.model.time_vec} time_vec"]
+        predictions = trainer.predict(datamodule=datamodule, ckpt_path='best', return_predictions=True)
+        for i, ds in enumerate(datamodule.pred_datasets):
+            xs = []
+            ys = []
+            pred = torch.cat(predictions[i])
+            pred = pred.reshape(-1).numpy()
+            comparison = pd.DataFrame(
+                ds.data,
+                index=pd.RangeIndex(start=0, stop=len(ds.data), step=1),
+                columns=["Open", "High", "Low", "Close"]#, "Volume"
+            )
+            xs.append(list(range(0, len(ds))))
+            ys.append(list(comparison["Close"]))
+            xs.append(list(range(cfg.data.datamodule.time, len(ds.data))))
+            ys.append(list(pred))
+            wandb.log({
+                f"{ds.name}_pred": wandb.plot.line_series(xs,ys,title= f"{ds.name} Predictions", xname="Day", keys=["Close", "Pred"])
+            })
+        hydra.utils.log.info(f"Closing WandbLogger")
+        wandb.finish()
 
 
 @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default")

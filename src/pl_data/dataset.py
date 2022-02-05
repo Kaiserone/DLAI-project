@@ -6,36 +6,38 @@ import torch
 from omegaconf import ValueNode
 from torch.utils.data import Dataset
 import pandas as pd
-
+from datetime import datetime
 from src.common.utils import PROJECT_ROOT
 
 class MyDataset(Dataset):
     def __init__(self, name: ValueNode, path: ValueNode, time : ValueNode,**kwargs):
-        super().__init__()
+        super(MyDataset,self).__init__()
         self.name = name
         self.path = str(PROJECT_ROOT / path)
         self.time = time
-        self.data : pd.DataFrame = pd.read_csv(self.path,usecols=["Open", "High", "Low", "Close", "Volume"])
-        #self.data = self.data.rolling(window=10,min_periods=1).mean()
+
+        self.data : pd.DataFrame = pd.read_csv(self.path, parse_dates=['Date'], index_col="Date",usecols=["Date","Open", "High", "Low", "Close"]).sort_index()#, "Volume"
+        self.data = self.data.rolling(window=10,min_periods=1).mean()
         self.data = self.data.pct_change() 
         self.data.dropna(inplace=True)
-        min_return = self.data[['Open', 'High', 'Low', 'Close']].min()
-        max_return = self.data[['Open', 'High', 'Low', 'Close']].max()
-
-        print(f"{min_return=}, {max_return=}")
+        min_return = min(self.data[['Open', 'High', 'Low', 'Close']].min())
+        max_return = max(self.data[['Open', 'High', 'Low', 'Close']].max())
+        self.min_pct = min_return
+        self.max_pct = max_return
         self.data[['Open', 'High', 'Low', 'Close']] = (self.data[['Open','High', 'Low', 'Close']] - min_return) / (max_return - min_return)
-        ###############################################################################
+        ##############################################################################
         '''Normalize volume column'''
 
-        min_volume = self.data['Volume'].min()
-        max_volume = self.data['Volume'].max()
+        #min_volume = self.data['Volume'].min()
+        #max_volume = self.data['Volume'].max()
 
         # Min-max normalize volume columns (0-1 range)
-        self.data['Volume'] = (self.data['Volume'] - min_volume) / (max_volume - min_volume)
+        #self.data['Volume'] = (self.data['Volume'] - min_volume) / (max_volume - min_volume)
         
-        self.data = self.data[["Open", "High", "Low", "Close", "Volume"]].values.reshape(-1, 5)
+        self.data = self.data[["Open", "High", "Low", "Close"]].values
         self.data = torch.from_numpy(self.data)
         self.data = self.data.float()
+
         
 
     def __len__(self) -> int:
@@ -54,8 +56,8 @@ class MyDataset(Dataset):
 
 
 class PredictDataset(MyDataset):
-    def __init__(self, path: str, time : int, **kwargs):
-        super().__init__(name="prediction",path=path, time=time, **kwargs)
+    def __init__(self,name:ValueNode, path: ValueNode, time : ValueNode, **kwargs):
+        super(PredictDataset,self).__init__(name=name,path=path, time=time, **kwargs)
 
     def __getitem__(
         self, index

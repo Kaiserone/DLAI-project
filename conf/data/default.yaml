@@ -7,15 +7,24 @@ datamodule:
       name: Train
       path: ${oc.env:YOUR_TRAIN_DATASET_PATH}
 
-    val:
-      - _target_: src.pl_data.dataset.MyDataset
-        name: Validate
-        path: ${oc.env:YOUR_VAL_DATASET_PATH}
-
     test:
       - _target_: src.pl_data.dataset.MyDataset
         name: Test
         path: ${oc.env:YOUR_TEST_DATASET_PATH}
+    
+    predict:
+      - _target_: src.pl_data.dataset.PredictDataset
+        name: Apple
+        path: ${oc.env:YOUR_TRAIN_DATASET_PATH}
+      - _target_: src.pl_data.dataset.PredictDataset
+        name: Amazon
+        path: data/amzn.csv
+      - _target_: src.pl_data.dataset.PredictDataset
+        name: Google
+        path: data/goog.csv
+      - _target_: src.pl_data.dataset.PredictDataset
+        name: Tesla
+        path: data/tesla.csv
 
   time: 128
 
@@ -23,8 +32,10 @@ datamodule:
     train: 8
     val: 4
     test: 4
+    predict: 4
 
   batch_size:
     train: 32
     val: 16
     test: 16
+    predict : 16

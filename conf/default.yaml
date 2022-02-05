@@ -3,7 +3,6 @@ core:
   version: 0.0.1
   tags:
     - apple
-    - no-time
 
 defaults:
   - _self_

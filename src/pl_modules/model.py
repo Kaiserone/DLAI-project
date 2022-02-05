@@ -16,16 +16,16 @@ class MyModel(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters() # populate self.hparams with args and kwargs automagically!
         
-        time = self.hparams.data.datamodule.time
+        self.time = self.hparams.data.datamodule.time
         n_feature = self.hparams.n_feature # 5
         
         if self.hparams.time_vec:
-            self.time_vec = Time2Vector(time, n_feature)
+            self.time_vec = Time2Vector(self.time, n_feature)
             n_feature += 2
             
-        self.transformer = Transformer(self.hparams.nhead, self.hparams.layers, time, n_feature)
+        self.transformer = Transformer(self.hparams.nhead, self.hparams.layers, self.time, n_feature)
 
-        self.fc1 = nn.Linear(time * (n_feature), (n_feature))
+        self.fc1 = nn.Linear(self.time * (n_feature), (n_feature))
         self.drop = nn.Dropout(p=0.15)
         self.fc2 = nn.Linear(n_feature, 1)
 
@@ -122,17 +122,17 @@ class LSTM_std(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters() # populate self.hparams with args and kwargs automagically!
         
-        time = self.hparams.data.datamodule.time
+        self.time = self.hparams.data.datamodule.time
 
         self.n_feature = self.hparams.n_feature
-        self.num_layers = self.hparams.num_layers
+        self.layers = self.hparams.layers
         if self.hparams.time_vec:
-            self.time_vec = Time2Vector(time, self.n_feature)
+            self.time_vec = Time2Vector(self.time, self.n_feature)
             self.n_feature += 2
         
-        self.lstm = nn.LSTM(input_size=self.n_feature,num_layers= self.num_layers, batch_first=True, dropout=0.2, hidden_size=self.n_feature)
+        self.lstm = nn.LSTM(input_size=self.n_feature,num_layers= self.layers, batch_first=True, dropout=0.2, hidden_size=self.n_feature)
         
-        self.fc1 = nn.Linear(self.n_feature * time , self.n_feature)
+        self.fc1 = nn.Linear(self.n_feature * self.time , self.n_feature)
         self.fc2 = nn.Linear(self.n_feature, 1)
         self.drop = nn.Dropout(p=0.15)
 

@@ -1,4 +1,4 @@
 _target_: src.pl_modules.model.LSTM_std
 n_feature : 5
-num_layers : 6
+layers : 6
 time_vec : False

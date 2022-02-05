@@ -52,37 +52,30 @@ dataset_path = st.sidebar.selectbox(
     options=list(Path("data").glob("./*.csv")),
 )
 
-time = 128
+time = model.time
 
 dataset: PredictDataset = PredictDataset(path=dataset_path, time=time)
 
-trainer = Trainer(gpus=1)#gpus=1'
+trainer = Trainer()#gpus=1'
 
 pred = trainer.predict(model, dataloaders=DataLoader(dataset, shuffle=False, batch_size=32, num_workers=12), return_predictions=True)
 
 pred = torch.cat(pred)
+#pred = (pred.reshape(-1) * dataset.std) + dataset.mean
 pred = pred.reshape(-1)
 #truth = torch.tensor(dataset.data['Close']).reshape(-1)
 whole = pd.DataFrame(
     dataset.data,
     index=pd.RangeIndex(start=0, stop=len(dataset.data), step=1),
-    columns=["Open", "High", "Low", "Close", "Volume"]
+    columns=["Open", "High", "Low", "Close"]#, "Volume"
 )
-whole['Pred'] = pd.DataFrame(pred,index=pd.RangeIndex(start=time, stop=len(dataset.data), step=1),
-)
-whole.fillna(0, inplace=True)
-whole['Diff'] = whole['Close'] - whole['Pred']
-
-
-st.dataframe(whole[-15:])
-
-st.write(f"Mean diff: {whole['Diff'].mean()}")
-#df = pd.DataFrame({"pred": pred, "truth": dataset['Close'][time:]}, index=pd.RangeIndex(start=0, stop=len(pred), step=1))
+whole["Pred"] = pd.DataFrame(pred,index=pd.RangeIndex(start=time, stop=len(dataset.data), step=1))
+whole.dropna(inplace=True)
 
 stock = alt.Chart(whole.reset_index()).transform_fold(fold=["Pred", "Close"], as_=["Stock", "price"]).mark_line().encode(
     x='index:Q',
     y='price:Q',
-    color='Stock:N'
+    color='Stock:N',
 )
 
 st.altair_chart(stock, use_container_width=True)

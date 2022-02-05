@@ -1,6 +1,6 @@
-n_feature: 5
-nhead: 7
-layers: 6
+n_feature: 4
+layers: 1
+time_vec: false
 optim:
   optimizer:
     _target_: torch.optim.Adam
@@ -26,21 +26,17 @@ data:
         _target_: src.pl_data.dataset.MyDataset
         name: Train
         path: data/aapl_train.csv
-      val:
-      - _target_: src.pl_data.dataset.MyDataset
-        name: Validate
-        path: data/aapl_val.csv
       test:
       - _target_: src.pl_data.dataset.MyDataset
         name: Test
         path: data/aapl_test.csv
-    time: 128
+    time: 32
     num_workers:
       train: 8
       val: 4
       test: 4
     batch_size:
-      train: 32
+      train: 64
       val: 16
       test: 16
 logging:

@@ -12,12 +12,13 @@ pl_trainer:
   accumulate_grad_batches: 1
   num_sanity_val_steps: 2
   gradient_clip_val: 10.0
+  max_epochs: 70
 
-monitor_metric: 'train_loss'
+monitor_metric: 'val_loss'
 monitor_metric_mode: 'min'
 
 early_stopping:
-  patience: 42
+  patience: 30
   verbose: False
 
 model_checkpoints:

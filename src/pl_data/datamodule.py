@@ -47,10 +47,9 @@ class MyDataModule(pl.LightningDataModule):
         self.train_dataset: Optional[Dataset] = None
         self.val_datasets : Optional[Sequence[Dataset]] = None
         self.test_datasets: Optional[Sequence[Dataset]] = None
-        #self.train_sampler : Optional[SubsetRandomSampler] = None
-        #self.val_sampler : Optional[SubsetRandomSampler] = None
         self.train_subset : Optional[Sequence[int]] = None
         self.val_subset : Optional[Sequence[int]] = None
+        self.pred_datasets: Optional[Sequence[Dataset]] = None
 
     def prepare_data(self) -> None:
         # download only
@@ -62,17 +61,17 @@ class MyDataModule(pl.LightningDataModule):
             self.train_dataset = hydra.utils.instantiate(self.datasets.train, time = self.time)
             train_size = int(0.85 * len(self.train_dataset))
             self.train_subset, self.val_subset = range(0,train_size), range(train_size,len(self.train_dataset))
-            #self.train_sampler = SubsetRandomSampler(train_subset)
-            #self.val_sampler = SubsetRandomSampler(val_subset)
-            #self.val_datasets = [
-            #    hydra.utils.instantiate(dataset_cfg, time = self.time)
-            #    for dataset_cfg in self.datasets.val
-            #]
         
         if stage is None or stage == "test":
             self.test_datasets = [
                 hydra.utils.instantiate(dataset_cfg, time = self.time)
                 for dataset_cfg in self.datasets.test
+            ]
+
+        if stage is None or stage == "predict":
+            self.pred_datasets = [
+                hydra.utils.instantiate(dataset_cfg, time = self.time)
+                for dataset_cfg in self.datasets.predict
             ]
             
     def train_dataloader(self) -> DataLoader:
@@ -96,11 +95,23 @@ class MyDataModule(pl.LightningDataModule):
             DataLoader(
                 dataset,
                 shuffle=False,
+                batch_size=self.batch_size.predict,
+                num_workers=self.num_workers.predict,
+                worker_init_fn=worker_init_fn,
+            )
+            for dataset in self.test_datasets
+        ]
+    
+    def predict_dataloader(self) -> Sequence[DataLoader]:
+        return  [
+            DataLoader(
+                dataset,
+                shuffle=False,
                 batch_size=self.batch_size.test,
                 num_workers=self.num_workers.test,
                 worker_init_fn=worker_init_fn,
             )
-            for dataset in self.test_datasets
+            for dataset in self.pred_datasets
         ]
         
     def __repr__(self) -> str:
