@@ -10,22 +10,42 @@
 </p>
 
 ![Immagine][images/NaiveLSTM_Amazon_32d.svg]
+<img src="images/NaiveLSTM_Amazon_32d.svg">
 ![Immagine][images/NaiveLSTM_Amazon_64d.svg]
+<img src="images/NaiveLSTM_Amazon_64d.svg">
 ![Immagine][images/NaiveLSTM_Apple_32d.svg]
+<img src="images/NaiveLSTM_Apple_32d.svg">
 ![Immagine][images/NaiveLSTM_Apple_64d.svg]
+<img src="images/NaiveLSTM_Apple_64d.svg">
 ![Immagine][images/NaiveLSTM_Google_32d.svg]
+<img src="images/NaiveLSTM_Google_32d.svg">
 ![Immagine][images/NaiveLSTM_Google_64d.svg]
+<img src="images/NaiveLSTM_Google_64d.svg">
 ![Immagine][images/NaiveLSTM_Tesla_32d.svg]
+<img src="images/NaiveLSTM_Tesla_32d.svg">
 ![Immagine][images/NaiveLSTM_Tesla_64d.svg]
+<img src="images/NaiveLSTM_Tesla_64d.svg">
 ![Immagine][images/StockModel_Amazon_128d.svg]
+<img src="images/StockModel_Amazon_128d.svg">
 ![Immagine][images/StockModel_Amazon_32d.svg]
+<img src="images/StockModel_Amazon_32d.svg">
 ![Immagine][images/StockModel_Amazon_64d.svg]
+<img src="images/StockModel_Amazon_64d.svg">
 ![Immagine][images/StockModel_Apple_128d.svg]
+<img src="images/StockModel_Apple_128d.svg">
 ![Immagine][images/StockModel_Apple_32d.svg]
+<img src="images/StockModel_Apple_32d.svg">
 ![Immagine][images/StockModel_Apple_64d.svg]
+<img src="images/StockModel_Apple_64d.svg">
 ![Immagine][images/StockModel_Google_128d.svg]
+<img src="images/StockModel_Google_128d.svg">
 ![Immagine][images/StockModel_Google_32d.svg]
+<img src="images/StockModel_Google_32d.svg">
 ![Immagine][images/StockModel_Google_64d.svg]
+<img src="images/StockModel_Google_64d.svg">
 ![Immagine][images/StockModel_Tesla_128d.svg]
+<img src="images/StockModel_Tesla_128d.svg">
 ![Immagine][images/StockModel_Tesla_32d.svg]
+<img src="images/StockModel_Tesla_32d.svg">
 ![Immagine][images/StockModel_Tesla_64d.svg]
+<img src="images/StockModel_Tesla_64d.svg">
