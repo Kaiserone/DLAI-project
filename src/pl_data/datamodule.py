@@ -56,7 +56,6 @@ class MyDataModule(pl.LightningDataModule):
         pass
 
     def setup(self, stage: Optional[str] = None):
-        # Here you should instantiate your datasets, you may also split the train into train and validation if needed.
         if stage is None or stage == "fit":
             self.train_dataset = hydra.utils.instantiate(self.datasets.train, days = self.days)
             train_size = int(0.85 * len(self.train_dataset))

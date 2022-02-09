@@ -38,7 +38,7 @@ def run(cfg: DictConfig):
                 x='day:Q',
                 y='price:Q',
                 color='Stock:N',
-            )
+            ).properties(title=f"{ds} {d}").configure_title(anchor='middle')
             print(f"Saving images/{m}_{ds}_{day}d.svg")
             stock.save(PROJECT_ROOT/f"images/{m}_{ds}_{day}d.svg")
 

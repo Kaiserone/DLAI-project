@@ -1,21 +1,21 @@
 dataset : 
   - "Amazon"
-  #- "Apple"
-  #- "Google"
-  #- "Tesla"
+  - "Apple"
+  - "Google"
+  - "Tesla"
 
 days : 
-  #- 32
+  - 32
   - 64 
-  #- 128
+  - 128
 
 models : 
   - "StockModel"
-  #- "NaiveLSTM"
+  - "NaiveLSTM"
 
 layers :
-  #- 6
-  #- 4
+  - 6
+  - 4
   - 2
   - 1
    

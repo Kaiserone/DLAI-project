@@ -15,25 +15,27 @@ class MyDataset(Dataset):
         self.path = str(PROJECT_ROOT / path)
         self.days = days
 
-        self.data : pd.DataFrame = pd.read_csv(self.path, parse_dates=['Date'], index_col="Date",usecols=["Date","Open", "High", "Low", "Close"]).sort_index()#, "Volume"
+        # Read csv file
+        self.data : pd.DataFrame = pd.read_csv(self.path, parse_dates=['Date'], index_col="Date",usecols=["Date","Open", "High", "Low", "Close"]).sort_index()
+        
+        # Mean rolling with window 10
         self.data = self.data.rolling(window=10,min_periods=1).mean()
         self.data["Original"] = self.data["Close"]
-        self.data[['Open', 'High', 'Low', 'Close']] = self.data[['Open', 'High', 'Low', 'Close']].pct_change() 
+        
+        # Percentage change
+        self.data[['Open', 'High', 'Low', 'Close']] = self.data[['Open', 'High', 'Low', 'Close']].pct_change()
+        
+        # Drop first row
         self.data.dropna(inplace=True)
+        
+        #Normalization
         min_return = min(self.data[['Open', 'High', 'Low', 'Close']].min())
         max_return = max(self.data[['Open', 'High', 'Low', 'Close']].max())
         self.min_pct = min_return
         self.max_pct = max_return
         self.data[['Open', 'High', 'Low', 'Close']] = (self.data[['Open','High', 'Low', 'Close']] - min_return) / (max_return - min_return)
-        ##############################################################################
-        '''Normalize volume column'''
 
-        #min_volume = self.data['Volume'].min()
-        #max_volume = self.data['Volume'].max()
-
-        # Min-max normalize volume columns (0-1 range)
-        #self.data['Volume'] = (self.data['Volume'] - min_volume) / (max_volume - min_volume)
-        
+        #to Tensor
         self.data = self.data[["Open", "High", "Low", "Close", "Original"]].values
         self.data = torch.from_numpy(self.data)
         self.data = self.data.float()
@@ -47,6 +49,7 @@ class MyDataset(Dataset):
         self, index
     ) -> Union[Dict[str, torch.Tensor], Tuple[torch.Tensor, torch.Tensor]]:
         return {
+            #sequence of length days with 4 features
             "x" : self.data[index:index+self.days, :4],
             "y" : self.data[index+self.days, 3].reshape(1),
          }

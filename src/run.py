@@ -153,41 +153,42 @@ def run(cfg: DictConfig) -> None:
         
 
     # Logger closing to release resources/avoid multi-run conflicts
-    #if "wandb" in cfg.logging:
-    #(#Dataset, #Steps, #Batch)
-    model = cfg.model._target_.split('.')[-1]
-    t = "time" if cfg.model.time_vec else "no-time"
-    hydra.utils.log.info(f"Wandb Plotting Predictions for: {cfg.data.datamodule.days} days, {cfg.model.layers} layers, {model} model, {cfg.model.time_vec} time_vec")
-    wandb_logger.experiment.tags += [f"{cfg.data.datamodule.days} days", f"{cfg.model.layers} layers", f"{cfg.model._target_} model", f"{cfg.model.time_vec} time_vec"]
-    predictions = trainer.predict(datamodule=datamodule, ckpt_path='best', return_predictions=True)
-    for i, ds in enumerate(datamodule.pred_datasets):
-        xs = []
-        ys = []
-        pred = torch.cat(predictions[i])
-        pred = pred.reshape(-1).numpy()
-        comparison = pd.DataFrame(
-            ds.data,
-            index=pd.RangeIndex(start=0, stop=len(ds.data), step=1),
-            columns=["Open", "High", "Low", "Close","Original"]
-        )
+    # Log custom charts to wandb and save prediction locally to generate charts with src/charts/run.py
+    if "wandb" in cfg.logging:
+        #(#Dataset, #Steps, #Batch)
+        model = cfg.model._target_.split('.')[-1]
+        t = "time" if cfg.model.time_vec else "no-time"
+        hydra.utils.log.info(f"Wandb Plotting Predictions for: {cfg.data.datamodule.days} days, {cfg.model.layers} layers, {model} model, {cfg.model.time_vec} time_vec")
+        wandb_logger.experiment.tags += [f"{cfg.data.datamodule.days} days", f"{cfg.model.layers} layers", f"{cfg.model._target_} model", f"{cfg.model.time_vec} time_vec"]
+        predictions = trainer.predict(datamodule=datamodule, ckpt_path='best', return_predictions=True)
+        for i, ds in enumerate(datamodule.pred_datasets):
+            xs = []
+            ys = []
+            pred = torch.cat(predictions[i])
+            pred = pred.reshape(-1).numpy()
+            comparison = pd.DataFrame(
+                ds.data,
+                index=pd.RangeIndex(start=0, stop=len(ds.data), step=1),
+                columns=["Open", "High", "Low", "Close","Original"]
+            )
 
-        xs.append(list(range(0, len(ds))))
-        ys.append(list(comparison["Close"]))
-        xs.append(list(range(cfg.data.datamodule.days, len(ds.data))))
-        ys.append(list(pred))
-        wandb.log({
-            f"{ds.name}_pred": wandb.plot.line_series(xs,ys,title= f"{ds.name} Predictions", xname="Day", keys=["Close", "Pred"])
-        })
-        pred = pd.DataFrame(
-            pred,
-            index=pd.RangeIndex(start=cfg.data.datamodule.days, stop=len(ds.data), step=1),
-            columns=["Pred"]
-        )
-        comparison[f"{cfg.data.datamodule.days}d-{cfg.model.layers}l-{t}"] = pred["Pred"]
-        hydra.utils.log.info(f"Saving {model}_{ds.name}_{cfg.data.datamodule.days}d_{cfg.model.layers}l_{t}.csv")
-        comparison.to_csv(PROJECT_ROOT/f"images/{model}_{ds.name}_{cfg.data.datamodule.days}d_{cfg.model.layers}l_{t}.csv")
-    hydra.utils.log.info(f"Closing WandbLogger")
-    wandb.finish()
+            xs.append(list(range(0, len(ds))))
+            ys.append(list(comparison["Close"]))
+            xs.append(list(range(cfg.data.datamodule.days, len(ds.data))))
+            ys.append(list(pred))
+            wandb.log({
+                f"{ds.name}_pred": wandb.plot.line_series(xs,ys,title= f"{ds.name} Predictions", xname="Day", keys=["Close", "Pred"])
+            })
+            pred = pd.DataFrame(
+                pred,
+                index=pd.RangeIndex(start=cfg.data.datamodule.days, stop=len(ds.data), step=1),
+                columns=["Pred"]
+            )
+            comparison[f"{cfg.data.datamodule.days}d-{cfg.model.layers}l-{t}"] = pred["Pred"]
+            hydra.utils.log.info(f"Saving {model}_{ds.name}_{cfg.data.datamodule.days}d_{cfg.model.layers}l_{t}.csv")
+            comparison.to_csv(PROJECT_ROOT/f"images/{model}_{ds.name}_{cfg.data.datamodule.days}d_{cfg.model.layers}l_{t}.csv")
+        hydra.utils.log.info(f"Closing WandbLogger")
+        wandb.finish()
 
 
 @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default")

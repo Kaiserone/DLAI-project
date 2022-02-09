@@ -19,6 +19,7 @@ class StockModel(pl.LightningModule):
         self.days = self.hparams.data.datamodule.days
         n_features = self.hparams.n_features # 5
 
+        #bias for loss
         self.bias = nn.Parameter(torch.tensor(0.5))
 
         if self.hparams.time_vec:
@@ -44,7 +45,7 @@ class StockModel(pl.LightningModule):
             seq = torch.concat([seq, x], dim=-1)
         x = self.transformer(seq)
         x = x.view(x.shape[0], -1)
-        #x = self.drop(x)
+        x = self.drop(x)
         x = self.fc1(x)
         x = F.relu(x)
         x = self.fc2(x)
@@ -56,8 +57,6 @@ class StockModel(pl.LightningModule):
         
         loss = F.mse_loss(x, y)
 
-        
-        
         cx = torch.cumprod(x,dim=1)
         cy = torch.cumprod(y,dim=1)
         beta = F.mse_loss(cx,cy)

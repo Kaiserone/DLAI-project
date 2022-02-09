@@ -4,11 +4,11 @@ from torch import nn
 class Transformer(nn.Module):
     def __init__(self, nhead: int, layers: int, days:int, n_features: int) -> None:
         """
-        Simple model that uses convolutions
-        :param input_size: number of pixels in the image
-        :param input_channels: number of color channels in the image
-        :param n_features: size of the hidden dimensions to use
-        :param output_size: expected size of the output
+        Simple model that uses transformers
+        :param nhead: multi-head number
+        :param layers: number of hidden layers of the transformer
+        :param days: length of the sequence
+        :param n_features: size of the input features
         """
         super().__init__()
         self.n_features = n_features
