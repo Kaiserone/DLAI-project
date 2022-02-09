@@ -9,8 +9,8 @@ datamodule:
 
     test:
       - _target_: src.pl_data.dataset.MyDataset
-        name: Test
-        path: ${oc.env:YOUR_TEST_DATASET_PATH}
+        name: Amazon
+        path: data/amzn.csv
     
     predict:
       - _target_: src.pl_data.dataset.PredictDataset
@@ -26,16 +26,16 @@ datamodule:
         name: Tesla
         path: data/tesla.csv
 
-  time: 128
+  days: 32
 
   num_workers:
     train: 8
     val: 4
     test: 4
-    predict: 4
+    pred: 4
 
   batch_size:
-    train: 32
-    val: 16
-    test: 16
-    predict : 16
+    train: 64
+    val: 32
+    test: 32
+    pred: 32

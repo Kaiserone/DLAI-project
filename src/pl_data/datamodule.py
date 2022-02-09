@@ -36,20 +36,20 @@ class MyDataModule(pl.LightningDataModule):
         datasets: DictConfig,
         num_workers: DictConfig,
         batch_size: DictConfig,
-        time: ValueNode,
+        days: ValueNode,
     ):
         super().__init__()
         self.datasets = datasets
         self.num_workers = num_workers
         self.batch_size = batch_size
-        self.time = time
+        self.days = days
 
         self.train_dataset: Optional[Dataset] = None
         self.val_datasets : Optional[Sequence[Dataset]] = None
         self.test_datasets: Optional[Sequence[Dataset]] = None
+        self.pred_datasets: Optional[Sequence[Dataset]] = None
         self.train_subset : Optional[Sequence[int]] = None
         self.val_subset : Optional[Sequence[int]] = None
-        self.pred_datasets: Optional[Sequence[Dataset]] = None
 
     def prepare_data(self) -> None:
         # download only
@@ -58,19 +58,19 @@ class MyDataModule(pl.LightningDataModule):
     def setup(self, stage: Optional[str] = None):
         # Here you should instantiate your datasets, you may also split the train into train and validation if needed.
         if stage is None or stage == "fit":
-            self.train_dataset = hydra.utils.instantiate(self.datasets.train, time = self.time)
+            self.train_dataset = hydra.utils.instantiate(self.datasets.train, days = self.days)
             train_size = int(0.85 * len(self.train_dataset))
             self.train_subset, self.val_subset = range(0,train_size), range(train_size,len(self.train_dataset))
         
         if stage is None or stage == "test":
             self.test_datasets = [
-                hydra.utils.instantiate(dataset_cfg, time = self.time)
+                hydra.utils.instantiate(dataset_cfg, days = self.days)
                 for dataset_cfg in self.datasets.test
             ]
 
         if stage is None or stage == "predict":
             self.pred_datasets = [
-                hydra.utils.instantiate(dataset_cfg, time = self.time)
+                hydra.utils.instantiate(dataset_cfg, days = self.days)
                 for dataset_cfg in self.datasets.predict
             ]
             
@@ -95,8 +95,8 @@ class MyDataModule(pl.LightningDataModule):
             DataLoader(
                 dataset,
                 shuffle=False,
-                batch_size=self.batch_size.predict,
-                num_workers=self.num_workers.predict,
+                batch_size=self.batch_size.test,
+                num_workers=self.num_workers.test,
                 worker_init_fn=worker_init_fn,
             )
             for dataset in self.test_datasets
@@ -107,8 +107,8 @@ class MyDataModule(pl.LightningDataModule):
             DataLoader(
                 dataset,
                 shuffle=False,
-                batch_size=self.batch_size.test,
-                num_workers=self.num_workers.test,
+                batch_size=self.batch_size.pred,
+                num_workers=self.num_workers.pred,
                 worker_init_fn=worker_init_fn,
             )
             for dataset in self.pred_datasets

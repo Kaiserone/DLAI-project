@@ -10,7 +10,7 @@ wandb:
   entity: Caiserini
   log_model: True
   mode: 'online'
-  name: 'Apple'
+  name: 'Stock'
   save_dir: ${oc.env:PROJECT_ROOT}
 
 wandb_watch:

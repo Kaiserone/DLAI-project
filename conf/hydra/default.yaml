@@ -6,6 +6,7 @@ sweep:
   subdir: ${hydra.job.num}_${hydra.job.id}
 
 job:
+  num: 1
   env_set:
     WANDB_START_METHOD: thread
     WANDB_DIR: ${oc.env:PROJECT_ROOT}

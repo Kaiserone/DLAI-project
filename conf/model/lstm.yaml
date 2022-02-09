@@ -1,4 +1,4 @@
-_target_: src.pl_modules.model.LSTM_std
-n_feature : 5
-layers : 6
+_target_: src.pl_modules.model.NaiveLSTM
+n_features : 4
+layers : 2
 time_vec : False

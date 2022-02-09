@@ -11,23 +11,25 @@ from src.common.utils import PROJECT_ROOT
 from src.pl_modules.transf import Transformer
 from src.pl_modules.time import Time2Vector
 
-class MyModel(pl.LightningModule):
+class StockModel(pl.LightningModule):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__()
         self.save_hyperparameters() # populate self.hparams with args and kwargs automagically!
         
-        self.time = self.hparams.data.datamodule.time
-        n_feature = self.hparams.n_feature # 5
-        
-        if self.hparams.time_vec:
-            self.time_vec = Time2Vector(self.time, n_feature)
-            n_feature += 2
-            
-        self.transformer = Transformer(self.hparams.nhead, self.hparams.layers, self.time, n_feature)
+        self.days = self.hparams.data.datamodule.days
+        n_features = self.hparams.n_features # 5
 
-        self.fc1 = nn.Linear(self.time * (n_feature), (n_feature))
+        self.bias = nn.Parameter(torch.tensor(0.5))
+
+        if self.hparams.time_vec:
+            self.time_vec = Time2Vector(self.days, n_features)
+            n_features += 2
+            
+        self.transformer = Transformer(self.hparams.nhead, self.hparams.layers, self.days, n_features)
+
+        self.fc1 = nn.Linear(self.days * (n_features), (n_features))
         self.drop = nn.Dropout(p=0.15)
-        self.fc2 = nn.Linear(n_feature, 1)
+        self.fc2 = nn.Linear(n_features, 1)
 
     def forward(self, seq: torch.Tensor, **kwargs) -> Dict[str, torch.Tensor]:
         """
@@ -39,8 +41,8 @@ class MyModel(pl.LightningModule):
 
         if self.hparams.time_vec:
             x = self.time_vec(seq)
-            x = torch.concat([seq, x], dim=-1)
-        x = self.transformer(x)
+            seq = torch.concat([seq, x], dim=-1)
+        x = self.transformer(seq)
         x = x.view(x.shape[0], -1)
         #x = self.drop(x)
         x = self.fc1(x)
@@ -51,10 +53,19 @@ class MyModel(pl.LightningModule):
     def step(self, batch: Any, batch_idx: int) -> Dict[str, torch.Tensor]:
         x, y = batch['x'], batch['y']
         x = self(x)
+        
         loss = F.mse_loss(x, y)
+
+        
+        
+        cx = torch.cumprod(x,dim=1)
+        cy = torch.cumprod(y,dim=1)
+        beta = F.mse_loss(cx,cy)
+        
+
         return {
                 "logits": x,
-                "loss": loss,
+                "loss": self.bias * loss + beta * (1 - self.bias),
             }
 
     def training_step(self, batch: Any, batch_idx: int) -> torch.Tensor:
@@ -117,23 +128,23 @@ class MyModel(pl.LightningModule):
         )
         return [opt], [scheduler]
 
-class LSTM_std(pl.LightningModule):
+class NaiveLSTM(pl.LightningModule):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__()
         self.save_hyperparameters() # populate self.hparams with args and kwargs automagically!
         
-        self.time = self.hparams.data.datamodule.time
+        self.days = self.hparams.data.datamodule.days
 
-        self.n_feature = self.hparams.n_feature
+        self.n_features = self.hparams.n_features
         self.layers = self.hparams.layers
         if self.hparams.time_vec:
-            self.time_vec = Time2Vector(self.time, self.n_feature)
-            self.n_feature += 2
+            self.time_vec = Time2Vector(self.days, self.n_features)
+            self.n_features += 2
         
-        self.lstm = nn.LSTM(input_size=self.n_feature,num_layers= self.layers, batch_first=True, dropout=0.2, hidden_size=self.n_feature)
+        self.lstm = nn.LSTM(input_size=self.n_features,num_layers= self.layers, batch_first=True, dropout=0.2, hidden_size=self.n_features)
         
-        self.fc1 = nn.Linear(self.n_feature * self.time , self.n_feature)
-        self.fc2 = nn.Linear(self.n_feature, 1)
+        self.fc1 = nn.Linear(self.n_features * self.days , self.n_features)
+        self.fc2 = nn.Linear(self.n_features, 1)
         self.drop = nn.Dropout(p=0.15)
 
 
