@@ -1,7 +1,8 @@
 
 # .gitignore defaults for python and pycharm
 .idea
-
+.vscode
+images/*.csv
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

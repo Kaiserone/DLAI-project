@@ -28,6 +28,7 @@ Train and validation loss for the best performing models
 
 ---
 ## My model 64 days input sequence with some of the best predictions with 2 layer
+We can actually see that at 4 and 6 layers the predictions collapses to a constant value.
 <p float="left">
 <img width="40%" src="images/StockModel_Amazon_64d.svg">
 <img width="40%" src="images/StockModel_Apple_64d.svg">
